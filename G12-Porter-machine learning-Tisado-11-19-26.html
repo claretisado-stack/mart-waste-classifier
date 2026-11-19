@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Waste Classifier | AI-Powered Waste Sorting</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- TensorFlow.js & Teachable Machine Image Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        eco: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-eco-200 selection:text-eco-900 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-eco-500 to-emerald-600 flex items-center justify-center text-white shadow-sm shadow-eco-500/20">
+                    <!-- Recycle Icon SVG -->
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"/>
+                        <path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"/>
+                        <path d="m14 16-3 3 3 3"/>
+                        <path d="M8.293 13.596 7.196 9.5 3.1 10.598"/>
+                        <path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"/>
+                        <path d="m13.378 9.633 4.096 1.098 1.097-4.096"/>
+                    </svg>
+                </div>
+                <span class="font-bold text-lg tracking-tight text-slate-900">Smart<span class="text-eco-600">Waste</span> AI</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="#how-to-use" class="text-sm font-medium text-slate-600 hover:text-eco-600 transition-colors hidden sm:inline-block">How It Works</a>
+                <a href="#classifier-app" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-eco-600 hover:bg-eco-700 text-white text-sm font-semibold shadow-sm transition-all">
+                    <span>Launch Classifier</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+
+        <!-- Hero Section -->
+        <section class="relative overflow-hidden bg-gradient-to-b from-eco-50/90 via-white to-slate-50 pt-12 pb-14 sm:pt-16 sm:pb-20 border-b border-slate-200/60">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-eco-100/80 border border-eco-200 text-eco-800 text-xs sm:text-sm font-semibold mb-6">
+                    <span class="w-2 h-2 rounded-full bg-eco-500 animate-pulse"></span>
+                    Powered by Google Teachable Machine &amp; TensorFlow.js
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-5">
+                    Smart Waste <span class="text-transparent bg-clip-text bg-gradient-to-r from-eco-600 to-teal-600">Classification AI</span>
+                </h1>
+                <p class="max-w-2xl mx-auto text-base sm:text-lg text-slate-600 leading-relaxed mb-8">
+                    Identify and sort waste items in real time using machine learning directly in your browser. Use your live webcam or upload a photo to classify waste categories instantly with zero server uploads.
+                </p>
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                    <a href="#classifier-app" class="px-6 py-3 rounded-xl bg-eco-600 hover:bg-eco-700 text-white font-semibold shadow-md shadow-eco-600/20 transition-all inline-flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Start Scanning Waste
+                    </a>
+                    <a href="#how-to-use" class="px-6 py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-200 shadow-sm transition-all">
+                        Step-by-Step Guide
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step-by-Step Guide Section -->
+        <section id="how-to-use" class="py-14 sm:py-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-3">How to Use This Tool</h2>
+                <p class="text-slate-600 text-sm sm:text-base">Follow these four simple steps to accurately classify any waste item using the trained AI model.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Step 1 -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-10 h-10 rounded-xl bg-eco-100 text-eco-700 font-bold text-base flex items-center justify-center">01</span>
+                        <svg class="w-6 h-6 text-eco-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg mb-2">Choose Input Method</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">Select either <strong>Live Webcam</strong> for real-time scanning or <strong>Upload Image</strong> to test a photo from your device.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-10 h-10 rounded-xl bg-eco-100 text-eco-700 font-bold text-base flex items-center justify-center">02</span>
+                        <svg class="w-6 h-6 text-eco-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg mb-2">Allow Permissions / Select File</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">Grant browser camera access if using the webcam, or pick a clear, well-lit photo of the waste item.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-10 h-10 rounded-xl bg-eco-100 text-eco-700 font-bold text-base flex items-center justify-center">03</span>
+                        <svg class="w-6 h-6 text-eco-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg mb-2">Position the Waste Item</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">Hold the item steady in front of the camera (ideally against a plain background) or ensure the uploaded image is centered.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="w-10 h-10 rounded-xl bg-eco-100 text-eco-700 font-bold text-base flex items-center justify-center">04</span>
+                        <svg class="w-6 h-6 text-eco-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg mb-2">View AI Classification</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">Read the real-time confidence bars to see which waste category the model predicts, then follow proper disposal practices.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Teachable Machine Inference Section -->
+        <section id="classifier-app" class="pb-16 sm:pb-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
+                
+                <!-- App Top Status Banner -->
+                <div class="bg-slate-900 text-white px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span id="model-status-dot" class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
+                        <div>
+                            <h2 class="font-bold text-base sm:text-lg leading-none">Waste Classification Studio</h2>
+                            <p id="model-status-text" class="text-xs text-slate-400 mt-1">Initializing Teachable Machine model...</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-300 bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700 self-start sm:self-auto">
+                        <span>Model ID:</span>
+                        <code class="font-mono text-eco-400 font-semibold">Z26OrzwMf</code>
+                    </div>
+                </div>
+
+                <!-- Error / Notification Alert Box (Replaces alert()) -->
+                <div id="alert-box" class="hidden mx-6 mt-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <h4 id="alert-title" class="font-bold text-sm">Notice</h4>
+                            <p id="alert-message" class="text-sm text-red-700 mt-0.5"></p>
+                        </div>
+                    </div>
+                    <button onclick="hideAlert()" class="text-red-500 hover:text-red-700 p-1 rounded-lg" aria-label="Close message">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Main Interactive Split Grid -->
+                <div class="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    <!-- Left Column: Input Controls & Viewport (7 Cols) -->
+                    <div class="lg:col-span-7 flex flex-col">
+                        
+                        <!-- Mode Tabs -->
+                        <div class="grid grid-cols-2 p-1.5 bg-slate-100 rounded-2xl mb-6 border border-slate-200/70">
+                            <button id="tab-webcam" onclick="switchMode('webcam')" class="py-2.5 px-4 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-white text-slate-900 shadow-sm">
+                                <svg class="w-4 h-4 text-eco-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <span>Live Webcam</span>
+                            </button>
+                            <button id="tab-upload" onclick="switchMode('upload')" class="py-2.5 px-4 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+                                <svg class="w-4 h-4 text-eco-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>Upload Image</span>
+                            </button>
+                        </div>
+
+                        <!-- Mode 1: Live Webcam Container -->
+                        <div id="panel-webcam" class="flex-grow flex flex-col">
+                            <div class="relative w-full aspect-square max-w-md mx-auto bg-slate-900 rounded-2xl overflow-hidden border-2 border-slate-200 flex items-center justify-center shadow-inner">
+                                <!-- Placeholder before camera starts -->
+                                <div id="webcam-placeholder" class="text-center p-6 text-slate-400">
+                                    <div class="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto mb-4 text-eco-400">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <p class="font-semibold text-white text-base mb-1">Camera is Ready</p>
+                                    <p class="text-xs text-slate-400 max-w-xs mx-auto">Click "Start Camera" below and allow browser webcam access to scan waste in real time.</p>
+                                </div>
+                                <!-- Teachable Machine Canvas injected here -->
+                                <div id="webcam-container" class="w-full h-full hidden flex items-center justify-center [&>canvas]:w-full [&>canvas]:h-full [&>canvas]:object-cover"></div>
+                                
+                                <!-- Live Indicator Badge -->
+                                <div id="live-badge" class="hidden absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-red-600/90 backdrop-blur-sm text-white text-xs font-bold tracking-wider uppercase flex items-center gap-1.5 shadow">
+                                    <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                                    LIVE
+                                </div>
+                            </div>
+
+                            <!-- Camera Action Buttons -->
+                            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                                <button id="btn-start-cam" onclick="startWebcam()" class="px-6 py-3 rounded-xl bg-eco-600 hover:bg-eco-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm shadow-sm transition-all inline-flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Start Camera</span>
+                                </button>
+                                <button id="btn-stop-cam" onclick="stopWebcam()" disabled class="px-6 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 disabled:opacity-40 disabled:cursor-not-allowed text-slate-800 font-semibold text-sm transition-all inline-flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                                    </svg>
+                                    <span>Stop Camera</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mode 2: Upload Image Container -->
+                        <div id="panel-upload" class="hidden flex-grow flex flex-col">
+                            <div id="drop-zone" class="relative w-full aspect-square max-w-md mx-auto rounded-2xl border-2 border-dashed border-slate-300 hover:border-eco-500 bg-slate-50 hover:bg-eco-50/40 transition-all flex flex-col items-center justify-center p-6 text-center cursor-pointer overflow-hidden">
+                                <input type="file" id="image-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleImageUpload(event)">
+                                
+                                <!-- Upload Prompt -->
+                                <div id="upload-prompt" class="pointer-events-none">
+                                    <div class="w-14 h-14 rounded-2xl bg-eco-100 text-eco-600 flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                        </svg>
+                                    </div>
+                                    <p class="font-bold text-slate-800 text-base mb-1">Click or drag &amp; drop an image</p>
+                                    <p class="text-xs text-slate-500">Supports JPG, PNG, or WEBP photos of waste items</p>
+                                </div>
+
+                                <!-- Uploaded Image Preview -->
+                                <img id="uploaded-preview" src="" alt="Uploaded waste preview" class="hidden w-full h-full object-contain rounded-xl z-0">
+                            </div>
+
+                            <div class="mt-6 flex justify-center">
+                                <label for="image-input" class="px-6 py-3 rounded-xl bg-eco-600 hover:bg-eco-700 text-white font-semibold text-sm shadow-sm transition-all inline-flex items-center gap-2 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    <span>Choose Photo File</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column: Real-Time Prediction Results Panel (5 Cols) -->
+                    <div class="lg:col-span-5 flex flex-col justify-between bg-slate-50 rounded-2xl p-6 border border-slate-200/80">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-900 text-lg">AI Classification Results</h3>
+                                <span id="inference-badge" class="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-200 text-slate-700">Waiting for input</span>
+                            </div>
+
+                            <!-- Top Predicted Class Card -->
+                            <div id="top-prediction-card" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm mb-6">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Top Predicted Category</p>
+                                <div class="flex items-baseline justify-between gap-2">
+                                    <h4 id="top-class-name" class="text-2xl font-extrabold text-slate-900 truncate">—</h4>
+                                    <span id="top-class-score" class="text-xl font-bold text-eco-600 shrink-0">0%</span>
+                                </div>
+                                <p id="disposal-tip" class="text-xs text-slate-500 mt-2.5 pt-2.5 border-t border-slate-100 leading-relaxed">
+                                    Start the camera or upload an image to view real-time waste classification confidence scores.
+                                </p>
+                            </div>
+
+                            <!-- All Classes Confidence Progress Bars -->
+                            <div>
+                                <div class="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                                    <span>Class Breakdown</span>
+                                    <span>Confidence</span>
+                                </div>
+                                <div id="predictions-container" class="space-y-3.5">
+                                    <!-- Loading Skeletons -->
+                                    <div class="animate-pulse space-y-3">
+                                        <div class="h-10 bg-slate-200/80 rounded-xl"></div>
+                                        <div class="h-10 bg-slate-200/80 rounded-xl"></div>
+                                        <div class="h-10 bg-slate-200/80 rounded-xl"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy & Local Execution Note -->
+                        <div class="mt-8 pt-4 border-t border-slate-200/80 flex items-center gap-2.5 text-xs text-slate-500">
+                            <svg class="w-4 h-4 text-eco-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span>100% Private: Images are processed locally on your device.</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-eco-500"></span>
+                <span>Smart Waste Classification AI — Runs locally in your browser for complete privacy.</span>
+            </div>
+            <div>
+                <span>Powered by </span>
+                <a href="https://teachablemachine.withgoogle.com/models/Z26OrzwMf/" target="_blank" rel="noopener noreferrer" class="font-semibold text-eco-700 hover:text-eco-800 underline underline-offset-2">
+                    Google Teachable Machine
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // Teachable Machine Model URL
+        const MODEL_URL = "https://teachablemachine.withgoogle.com/models/Z26OrzwMf/";
+
+        let model = null;
+        let webcam = null;
+        let maxPredictions = 0;
+        let isWebcamRunning = false;
+        let animationFrameId = null;
+        let currentMode = 'webcam';
+
+        // DOM Elements
+        const statusDot = document.getElementById('model-status-dot');
+        const statusText = document.getElementById('model-status-text');
+        const predictionsContainer = document.getElementById('predictions-container');
+        const topClassName = document.getElementById('top-class-name');
+        const topClassScore = document.getElementById('top-class-score');
+        const disposalTip = document.getElementById('disposal-tip');
+        const inferenceBadge = document.getElementById('inference-badge');
+
+        // Alert Box Helpers (No alert() used)
+        function showAlert(title, message) {
+            const alertBox = document.getElementById('alert-box');
+            document.getElementById('alert-title').textContent = title;
+            document.getElementById('alert-message').textContent = message;
+            alertBox.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            document.getElementById('alert-box').classList.add('hidden');
+        }
+
+        // Initialize Teachable Machine Model on Page Load
+        async function initModel() {
+            try {
+                const modelURL = MODEL_URL + "model.json";
+                const metadataURL = MODEL_URL + "metadata.json";
+
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+
+                // Update Status UI
+                statusDot.classList.remove('bg-amber-400', 'animate-pulse');
+                statusDot.classList.add('bg-eco-400');
+                statusText.textContent = `Model loaded (${maxPredictions} waste classes ready)`;
+
+                // Render initial empty bars for each class
+                const labels = model.getClassLabels();
+                renderInitialBars(labels);
+            } catch (error) {
+                console.error("Failed to load Teachable Machine model:", error);
+                statusDot.classList.remove('bg-amber-400', 'animate-pulse');
+                statusDot.classList.add('bg-red-500');
+                statusText.textContent = "Failed to load model. Check your internet connection.";
+                showAlert("Model Loading Error", "Could not load the Teachable Machine model from Google servers. Please verify your internet connection and refresh the page.");
+            }
+        }
+
+        // Render clean initial progress bars using actual model labels
+        function renderInitialBars(labels) {
+            predictionsContainer.innerHTML = '';
+            labels.forEach((label, index) => {
+                const row = document.createElement('div');
+                row.className = "bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm";
+                row.innerHTML = `
+                    <div class="flex justify-between items-center text-sm font-semibold mb-1.5">
+                        <span class="text-slate-800 truncate pr-2" id="label-${index}">${escapeHTML(label)}</span>
+                        <span class="text-slate-500 font-mono text-xs" id="score-${index}">0.0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                        <div id="bar-${index}" class="bg-eco-500 h-2.5 rounded-full transition-all duration-150 ease-out" style="width: 0%"></div>
+                    </div>
+                `;
+                predictionsContainer.appendChild(row);
+            });
+        }
+
+        // Escape HTML to safely render class names
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Switch between Webcam and Upload Tabs
+        function switchMode(mode) {
+            if (currentMode === mode) return;
+            currentMode = mode;
+            hideAlert();
+
+            const tabWebcam = document.getElementById('tab-webcam');
+            const tabUpload = document.getElementById('tab-upload');
+            const panelWebcam = document.getElementById('panel-webcam');
+            const panelUpload = document.getElementById('panel-upload');
+
+            if (mode === 'webcam') {
+                tabWebcam.className = "py-2.5 px-4 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-white text-slate-900 shadow-sm";
+                tabUpload.className = "py-2.5 px-4 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900";
+                panelWebcam.classList.remove('hidden');
+                panelUpload.classList.add('hidden');
+            } else {
+                // Stop webcam automatically when switching to upload mode
+                if (isWebcamRunning) {
+                    stopWebcam();
+                }
+                tabUpload.className = "py-2.5 px-4 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-white text-slate-900 shadow-sm";
+                tabWebcam.className = "py-2.5 px-4 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900";
+                panelUpload.classList.remove('hidden');
+                panelWebcam.classList.add('hidden');
+            }
+        }
+
+        // Start Live Webcam Inference
+        async function startWebcam() {
+            if (!model) {
+                showAlert("Model Not Ready", "Please wait a moment for the AI model to finish loading.");
+                return;
+            }
+            hideAlert();
+
+            const btnStart = document.getElementById('btn-start-cam');
+            const btnStop = document.getElementById('btn-stop-cam');
+            btnStart.disabled = true;
+
+            try {
+                const flip = true; // Flip horizontally for natural mirror view
+                webcam = new tmImage.Webcam(400, 400, flip);
+                await webcam.setup(); // Request camera access
+                await webcam.play();
+
+                isWebcamRunning = true;
+
+                // Update UI visibility
+                const container = document.getElementById('webcam-container');
+                container.innerHTML = '';
+                container.appendChild(webcam.canvas);
+                container.classList.remove('hidden');
+                document.getElementById('webcam-placeholder').classList.add('hidden');
+                document.getElementById('live-badge').classList.remove('hidden');
+
+                btnStop.disabled = false;
+                inferenceBadge.textContent = "Live Scanning";
+                inferenceBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-eco-100 text-eco-800";
+
+                // Start prediction loop
+                animationFrameId = window.requestAnimationFrame(webcamLoop);
+            } catch (error) {
+                console.error("Webcam error:", error);
+                btnStart.disabled = false;
+                showAlert("Camera Access Denied or Unavailable", "Please allow camera permissions in your browser settings, or switch to the 'Upload Image' tab to test a photo.");
+            }
+        }
+
+        // Continuous Loop for Webcam Frames
+        async function webcamLoop() {
+            if (!isWebcamRunning || !webcam) return;
+            webcam.update();
+            await predict(webcam.canvas);
+            animationFrameId = window.requestAnimationFrame(webcamLoop);
+        }
+
+        // Stop Live Webcam
+        function stopWebcam() {
+            isWebcamRunning = false;
+            if (animationFrameId) {
+                window.cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (webcam) {
+                webcam.stop();
+                webcam = null;
+            }
+
+            document.getElementById('webcam-container').classList.add('hidden');
+            document.getElementById('webcam-placeholder').classList.remove('hidden');
+            document.getElementById('live-badge').classList.add('hidden');
+            document.getElementById('btn-start-cam').disabled = false;
+            document.getElementById('btn-stop-cam').disabled = true;
+
+            inferenceBadge.textContent = "Camera Stopped";
+            inferenceBadge.className = "text-xs font-medium px-2.5 py-1 rounded-full bg-slate-200 text-slate-700";
+        }
+
+        // Handle Image Upload & Trigger Classification
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!model) {
+                showAlert("Model Not Ready", "Please wait for the AI model to finish initializing before uploading an image.");
+                return;
+            }
+            hideAlert();
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgElement = document.getElementById('uploaded-preview');
+                imgElement.src = e.target.result;
+                imgElement.classList.remove('hidden');
+                document.getElementById('upload-prompt').classList.add('hidden');
+
+                // Run prediction once image finishes decoding
+                imgElement.onload = async function() {
+                    inferenceBadge.textContent = "Image Classified";
+                    inferenceBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-eco-100 text-eco-800";
+                    await predict(imgElement);
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Run Model Prediction on Image or Video Canvas
+        async function predict(imageSource) {
+            if (!model) return;
+            const predictions = await model.predict(imageSource);
+
+            // Sort predictions highest probability first for clear display
+            const sorted = [...predictions].sort((a, b) => b.probability - a.probability);
+
+            // Update Top Prediction Highlight Card
+            const top = sorted[0];
+            const topPercent = (top.probability * 100).toFixed(1);
+            topClassName.textContent = top.className;
+            topClassScore.textContent = `${topPercent}%`;
+            disposalTip.textContent = getDisposalGuidance(top.className, top.probability);
+
+            // Update All Progress Bars
+            sorted.forEach((item, index) => {
+                const percent = (item.probability * 100).toFixed(1);
+                const labelEl = document.getElementById(`label-${index}`);
+                const scoreEl = document.getElementById(`score-${index}`);
+                const barEl = document.getElementById(`bar-${index}`);
+
+                if (labelEl && scoreEl && barEl) {
+                    labelEl.textContent = item.className;
+                    scoreEl.textContent = `${percent}%`;
+                    barEl.style.width = `${percent}%`;
+
+                    // Highlight the highest confidence bar
+                    if (index === 0 && item.probability > 0.5) {
+                        barEl.className = "bg-eco-600 h-2.5 rounded-full transition-all duration-150 ease-out";
+                        labelEl.className = "text-eco-900 font-bold truncate pr-2";
+                    } else {
+                        barEl.className = "bg-slate-400 h-2.5 rounded-full transition-all duration-150 ease-out";
+                        labelEl.className = "text-slate-700 font-medium truncate pr-2";
+                    }
+                }
+            });
+        }
+
+        // Provide Helpful Disposal Tip Based on Predicted Label
+        function getDisposalGuidance(className, probability) {
+            if (probability < 0.45) {
+                return "Low confidence detected. Try moving the waste item closer to the camera with better lighting or a plain background.";
+            }
+            const lower = className.toLowerCase();
+            if (lower.includes('recycl') || lower.includes('plastic') || lower.includes('paper') || lower.includes('metal') || lower.includes('glass') || lower.includes('cardboard')) {
+                return `Identified as "${className}". Ensure the item is clean, dry, and empty before placing it in your designated recycling bin.`;
+            }
+            if (lower.includes('organic') || lower.includes('biodegrad') || lower.includes('compost') || lower.includes('food')) {
+                return `Identified as "${className}". Suitable for composting or green organic waste collection bins.`;
+            }
+            if (lower.includes('hazard') || lower.includes('e-waste') || lower.includes('battery')) {
+                return `Identified as "${className}". Do not place in regular trash—take to a certified hazardous or e-waste drop-off facility.`;
+            }
+            return `Classified as "${className}" (${(probability * 100).toFixed(0)}% confidence). Follow your local waste management guidelines for proper disposal.`;
+        }
+
+        // Drag and Drop support for the Upload Dropzone
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-eco-500', 'bg-eco-50');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-eco-500', 'bg-eco-50');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-eco-500', 'bg-eco-50');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                const fileInput = document.getElementById('image-input');
+                fileInput.files = e.dataTransfer.files;
+                handleImageUpload({ target: fileInput });
+            }
+        });
+
+        // Start loading model when window loads
+        window.addEventListener('DOMContentLoaded', initModel);
+    </script>
+</body>
+</html>
